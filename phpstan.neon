@@ -1,0 +1,14 @@
+parameters:
+    level: 8
+    paths:
+        - src/
+        - tests/
+    ignoreErrors:
+        - '#Undefined type GuzzleHttp\\Client#'
+        - '#Undefined type GuzzleHttp\\Exception\\GuzzleException#'
+        - '#Undefined type GuzzleHttp\\Handler\\MockHandler#'
+        - '#Undefined type GuzzleHttp\\HandlerStack#'
+        - '#Undefined type GuzzleHttp\\Psr7\\Response#'
+        - '#Undefined type PHPUnit\\Framework\\TestCase#'
+        - '#Call to an undefined method PHPUnit\\Framework\\TestCase::(assert|assertEquals|assertArrayHasKey|assertIsArray)#'
+        - '#Parameter \#3 \$body of class GuzzleHttp\\Psr7\\Response constructor expects Psr\\Http\\Message\\StreamInterface\|resource\|string\|null, string\|false given#'

@@ -1,0 +1,5 @@
+API.txt
+.env
+vendor/
+
+.DS_Store
