@@ -44,12 +44,20 @@ Publish the configuration file:
 php artisan vendor:publish --provider="Lursoft\LursoftPhp\Providers\LursoftServiceProvider" --tag="config"
 ```
 
-Add your API key to your `.env` file:
+## Authentication
+
+The package uses OAuth 2.0 for authentication. The `getAccessToken()` method handles the OAuth token acquisition and caching automatically. The following environment variables are required:
 
 ```
-LURSOFT_API_KEY=your_api_key_here
+LURSOFT_CLIENT_ID=your_client_id
+LURSOFT_CLIENT_SECRET=your_client_secret
+LURSOFT_USERNAME=your_username
+LURSOFT_PASSWORD=your_password
+LURSOFT_SCOPE=your_scope
 LURSOFT_BASE_URL=https://api.lursoft.lv
 ```
+
+The access token is automatically cached and refreshed when expired. You don't need to manually handle the token management as it's taken care of by the service.
 
 ## Usage
 
@@ -127,13 +135,16 @@ $insolvencyReport = Lursoft::getInsolvencyProcessReport('process_id');
 ```php
 use Lursoft\LursoftPhp\Services\LursoftService;
 
-$lursoft = new LursoftService('your_api_key_here');
+$lursoft = new LursoftService();
 
 // All methods are available the same way as in Laravel
 $companyInfo = $lursoft->getLegalEntityReport('123456789');
 ```
 
 ## Available Methods
+
+### Authentication
+- `getAccessToken()`: You don't need to call this. It would be triggered and cached automatically
 
 ### Legal Entity Methods
 - `searchLegalEntity(string $query, array $params = [])`: Search for legal entities

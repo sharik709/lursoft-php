@@ -13,9 +13,8 @@ class LursoftService
     private string $apiKey;
     private string $baseUrl;
 
-    public function __construct(string $apiKey, string $baseUrl = 'https://api.lursoft.lv')
+    public function __construct(string $baseUrl = 'https://api.lursoft.lv')
     {
-        $this->apiKey = $apiKey;
         $this->baseUrl = $baseUrl;
         $this->client = new Client([
             'base_uri' => $this->baseUrl,
@@ -37,7 +36,10 @@ class LursoftService
     {
         try {
             $response = $this->client->post($endpoint, [
-                'json' => array_merge(['key' => $this->apiKey], $data),
+                'json' => $data,
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->getAccessToken(),
+                ],
             ]);
 
             $result = json_decode($response->getBody()->getContents(), true);

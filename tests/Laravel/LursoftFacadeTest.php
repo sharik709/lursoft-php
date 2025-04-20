@@ -29,8 +29,12 @@ class LursoftFacadeTest extends TestCase
             return $client;
         });
 
-        config(['lursoft.api_key' => 'test_api_key']);
         config(['lursoft.base_url' => 'https://api.lursoft.lv']);
+        config(['lursoft.client_id' => 'test_client_id']);
+        config(['lursoft.client_secret' => 'test_client_secret']);
+        config(['lursoft.username' => 'test_username']);
+        config(['lursoft.password' => 'test_password']);
+        config(['lursoft.scope' => 'organization:LURSOFT']);
     }
 
     /**
