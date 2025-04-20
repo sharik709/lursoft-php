@@ -248,4 +248,35 @@ class LursoftService
     {
         return $this->request('/insolvency_process_report', ['process_id' => $processId]);
     }
+
+    public function getAccessToken(): string
+    {
+        $cacheKey = 'lursoft_access_token';
+        $cache = $this->cache->get($cacheKey);
+
+        if ($cache) {
+            return $cache;
+        }
+
+        $response = $this->client->post('/oauth/token', [
+            'form_params' => [
+                'grant_type' => 'password',
+                'client_id' => config('lursoft.client_id'),
+                'client_secret' => config('lursoft.client_secret'),
+                'username' => config('lursoft.username'),
+                'password' => config('lursoft.password'),
+                'scope' => config('lursoft.scope'),
+            ],
+        ]);
+
+        $data = json_decode($response->getBody()->getContents(), true);
+
+        if (!isset($data['access_token'])) {
+            throw new LursoftException('Invalid response format');
+        }
+
+        $this->cache->set($cacheKey, $data['access_token'], $data['expires_in']);
+
+        return $data['access_token'];
+    }
 }
