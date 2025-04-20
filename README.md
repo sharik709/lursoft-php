@@ -1,6 +1,30 @@
-# Lursoft PHP Package
+# Lursoft PHP
 
-A PHP package for integrating with the Lursoft API service.
+[![Latest Version](https://img.shields.io/packagist/v/lursoft/lursoft-php.svg?style=flat-square)](https://packagist.org/packages/lursoft/lursoft-php)
+[![Total Downloads](https://img.shields.io/packagist/dt/lursoft/lursoft-php.svg?style=flat-square)](https://packagist.org/packages/lursoft/lursoft-php)
+[![License](https://img.shields.io/packagist/l/lursoft/lursoft-php.svg?style=flat-square)](https://packagist.org/packages/lursoft/lursoft-php)
+[![PHP Version](https://img.shields.io/packagist/php-v/lursoft/lursoft-php.svg?style=flat-square)](https://packagist.org/packages/lursoft/lursoft-php)
+[![Tests](https://github.com/sharik709/lursoft-php/actions/workflows/tests.yml/badge.svg)](https://github.com/sharik709/lursoft-php/actions/workflows/tests.yml)
+[![PHPStan](https://github.com/sharik709/lursoft-php/actions/workflows/phpstan.yml/badge.svg)](https://github.com/sharik709/lursoft-php/actions/workflows/phpstan.yml)
+
+A PHP package for integrating with the Lursoft API service. This package provides a simple and elegant way to interact with the Lursoft API in your PHP applications.
+
+## Features
+
+- Complete coverage of Lursoft API endpoints
+- Laravel integration with service provider and facade
+- Type-safe API responses
+- Comprehensive error handling
+- Built-in rate limiting support
+- Detailed documentation
+- Extensive test coverage
+- PSR-12 compliant code
+
+## Requirements
+
+- PHP 8.1 or higher
+- Composer
+- Laravel 9.x or 10.x (for Laravel integration)
 
 ## Installation
 
@@ -148,12 +172,51 @@ $companyInfo = $lursoft->getLegalEntityReport('123456789');
 - `getInsolvencyProcessData(string $processId)`: Get insolvency process data
 - `getInsolvencyProcessReport(string $processId)`: Get insolvency process report
 
+## Error Handling
+
+The package provides comprehensive error handling through the `LursoftException` class. All API errors will be thrown as exceptions that you can catch and handle appropriately:
+
+```php
+try {
+    $result = $lursoft->searchLegalEntity('Company Name');
+} catch (Lursoft\LursoftPhp\Exceptions\LursoftException $e) {
+    // Handle the error
+    echo $e->getMessage();
+}
+```
+
+## Rate Limiting
+
+The package supports rate limiting to prevent hitting API limits. You can configure the rate limiting settings in the configuration file:
+
+```php
+// config/lursoft.php
+return [
+    'rate_limit' => [
+        'enabled' => true,
+        'requests_per_minute' => 60,
+    ],
+];
+```
+
 ## Testing
 
 ```bash
 composer test
 ```
 
+## Contributing
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+## Security
+
+If you discover any security-related issues, please email shaikhsharik709@gmail.com instead of using the issue tracker.
+
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+
+## Author
+
+- **Sharik Shaikh** - [GitHub](https://github.com/sharik709) - [Email](mailto:shaikhsharik709@gmail.com)

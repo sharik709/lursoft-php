@@ -9,20 +9,17 @@ use Throwable;
 
 class LursoftService
 {
-    protected Client $client;
-    protected string $baseUrl;
-    protected string $apiKey;
+    private Client $client;
+    private string $apiKey;
+    private string $baseUrl;
 
-    public function __construct(string $apiKey, string $baseUrl = 'https://api.lursoft.lv', ?Client $client = null)
+    public function __construct(string $apiKey, string $baseUrl = 'https://api.lursoft.lv')
     {
         $this->apiKey = $apiKey;
         $this->baseUrl = $baseUrl;
-        $this->client = $client ?? new Client([
+        $this->client = new Client([
             'base_uri' => $this->baseUrl,
-            'headers' => [
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json',
-            ],
+            'timeout' => 30,
         ]);
     }
 
@@ -32,139 +29,223 @@ class LursoftService
     }
 
     /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
      * @throws LursoftException
      */
-    protected function request(string $method, string $endpoint, array $data = []): array
+    private function request(string $endpoint, array $data = []): array
     {
         try {
-            $response = $this->client->request($method, $endpoint, [
-                'json' => array_merge($data, ['api_key' => $this->apiKey]),
+            $response = $this->client->post($endpoint, [
+                'json' => array_merge(['key' => $this->apiKey], $data),
             ]);
 
-            return json_decode($response->getBody()->getContents(), true);
+            $result = json_decode($response->getBody()->getContents(), true);
+
+            if (!is_array($result)) {
+                throw new LursoftException('Invalid response format');
+            }
+
+            return $result;
         } catch (GuzzleException $e) {
             throw new LursoftException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
-    // 2.2 Request to search for a legal entity
-    public function searchLegalEntity(string $query, array $params = []): array
+    /**
+     * @param array<string, mixed> $params
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
+    public function searchLegalEntity(array $params): array
     {
-        return $this->request('POST', '/search/legal-entity', array_merge(['q' => $query], $params));
+        return $this->request('/search_legal_entity', $params);
     }
 
-    // 2.3 Report of legal entity
+    /**
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
     public function getLegalEntityReport(string $regNumber): array
     {
-        return $this->request('POST', '/legal-entity/report', ['reg_number' => $regNumber]);
+        return $this->request('/legal_entity_report', ['reg_number' => $regNumber]);
     }
 
-    // 2.4 List of annual reports
+    /**
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
     public function getAnnualReportsList(string $regNumber): array
     {
-        return $this->request('POST', '/annual-reports/list', ['reg_number' => $regNumber]);
+        return $this->request('/annual_reports_list', ['reg_number' => $regNumber]);
     }
 
-    // 2.5 Annual report
+    /**
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
     public function getAnnualReport(string $regNumber, string $year): array
     {
-        return $this->request('POST', '/annual-report', [
+        return $this->request('/annual_report', [
             'reg_number' => $regNumber,
-            'year' => $year
+            'year' => $year,
         ]);
     }
 
-    // 2.6 Person's profile
-    public function getPersonProfile(string $personCode): array
+    /**
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
+    public function getPersonProfile(string $personId): array
     {
-        return $this->request('POST', '/person/profile', ['person_code' => $personCode]);
+        return $this->request('/person_profile', ['person_id' => $personId]);
     }
 
-    // 2.7 Report of public person or institution
-    public function getPublicPersonReport(string $regNumber): array
+    /**
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
+    public function getPublicPersonReport(string $personId): array
     {
-        return $this->request('POST', '/public-person/report', ['reg_number' => $regNumber]);
+        return $this->request('/public_person_report', ['person_id' => $personId]);
     }
 
-    // 2.8 Checking in the lists of sanctions
-    public function searchSanctionsList(string $query, array $params = []): array
+    /**
+     * @param array<string, mixed> $params
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
+    public function searchSanctionsList(array $params): array
     {
-        return $this->request('POST', '/sanctions/search', array_merge(['q' => $query], $params));
+        return $this->request('/search_sanctions_list', $params);
     }
 
-    public function getSanctionsReport(string $subjectId): array
+    /**
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
+    public function getSanctionsReport(string $regNumber): array
     {
-        return $this->request('POST', '/sanctions/report', ['subject_id' => $subjectId]);
+        return $this->request('/sanctions_report', ['reg_number' => $regNumber]);
     }
 
+    /**
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
     public function verifySanctionByRegNumber(string $regNumber): array
     {
-        return $this->request('POST', '/sanctions/verify', ['reg_number' => $regNumber]);
+        return $this->request('/verify_sanction_by_reg_number', ['reg_number' => $regNumber]);
     }
 
-    // 2.10 Legal entity data of Estonia
-    public function searchEstonianLegalEntity(string $query): array
+    /**
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
+    public function searchEstonianLegalEntity(string $regNumber): array
     {
-        return $this->request('POST', '/estonia/legal-entity/search', ['q' => $query]);
+        return $this->request('/search_estonian_legal_entity', ['reg_number' => $regNumber]);
     }
 
+    /**
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
     public function getEstonianLegalEntityReport(string $regNumber): array
     {
-        return $this->request('POST', '/estonia/legal-entity/report', ['reg_number' => $regNumber]);
+        return $this->request('/estonian_legal_entity_report', ['reg_number' => $regNumber]);
     }
 
-    // 2.11 Legal entity data of Lithuanian
-    public function searchLithuanianLegalEntity(string $query): array
+    /**
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
+    public function searchLithuanianLegalEntity(string $regNumber): array
     {
-        return $this->request('POST', '/lithuania/legal-entity/search', ['q' => $query]);
+        return $this->request('/search_lithuanian_legal_entity', ['reg_number' => $regNumber]);
     }
 
+    /**
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
     public function getLithuanianLegalEntityReport(string $regNumber): array
     {
-        return $this->request('POST', '/lithuania/legal-entity/report', ['reg_number' => $regNumber]);
+        return $this->request('/lithuanian_legal_entity_report', ['reg_number' => $regNumber]);
     }
 
-    // 2.12 Deceased Person Data
-    public function getDeceasedPersonData(string $personCode): array
+    /**
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
+    public function getDeceasedPersonData(string $personId): array
     {
-        return $this->request('POST', '/deceased-person/data', ['person_code' => $personCode]);
+        return $this->request('/deceased_person_data', ['person_id' => $personId]);
     }
 
-    // 3. Address data
-    public function searchLatvianAddress(string $query, array $params = []): array
+    /**
+     * @param array<string, mixed> $params
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
+    public function searchLatvianAddress(array $params): array
     {
-        return $this->request('POST', '/latvia/address/search', array_merge(['q' => $query], $params));
+        return $this->request('/search_latvian_address', $params);
     }
 
-    public function searchLithuanianAddress(string $query, array $params = []): array
+    /**
+     * @param array<string, mixed> $params
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
+    public function searchLithuanianAddress(array $params): array
     {
-        return $this->request('POST', '/lithuania/address/search', array_merge(['q' => $query], $params));
+        return $this->request('/search_lithuanian_address', $params);
     }
 
-    public function searchEstonianAddress(string $query, array $params = []): array
+    /**
+     * @param array<string, mixed> $params
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
+    public function searchEstonianAddress(array $params): array
     {
-        return $this->request('POST', '/estonia/address/search', array_merge(['q' => $query], $params));
+        return $this->request('/search_estonian_address', $params);
     }
 
-    // 4. Data from "Road Traffic Safety Directorate" (CSDD)
+    /**
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
     public function getCsddVehicleStatement(string $regNumber): array
     {
-        return $this->request('POST', '/csdd/vehicle-statement', ['reg_number' => $regNumber]);
+        return $this->request('/csdd_vehicle_statement', ['reg_number' => $regNumber]);
     }
 
-    // 5. Insolvency Process Data
-    public function searchInsolvencyProcess(string $query): array
+    /**
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
+    public function searchInsolvencyProcess(string $regNumber): array
     {
-        return $this->request('POST', '/insolvency/search', ['q' => $query]);
+        return $this->request('/search_insolvency_process', ['reg_number' => $regNumber]);
     }
 
+    /**
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
     public function getInsolvencyProcessData(string $processId): array
     {
-        return $this->request('POST', '/insolvency/data', ['process_id' => $processId]);
+        return $this->request('/insolvency_process_data', ['process_id' => $processId]);
     }
 
+    /**
+     * @return array<string, mixed>
+     * @throws LursoftException
+     */
     public function getInsolvencyProcessReport(string $processId): array
     {
-        return $this->request('POST', '/insolvency/report', ['process_id' => $processId]);
+        return $this->request('/insolvency_process_report', ['process_id' => $processId]);
     }
 }
