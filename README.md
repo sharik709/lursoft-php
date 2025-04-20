@@ -59,7 +59,7 @@ LURSOFT_BASE_URL=https://api.lursoft.lv
 
 The access token is automatically cached and refreshed when expired. You don't need to manually handle the token management as it's taken care of by the service.
 
-## Usage
+## Basic Usage
 
 ### Laravel
 
@@ -68,68 +68,26 @@ use Sharik709\LursoftPhp\Facades\Lursoft;
 use Sharik709\LursoftPhp\Exceptions\LursoftException;
 
 try {
-    // Search for a legal entity
-    $results = Lursoft::searchLegalEntity('Company Name');
+    // Search for legal entities
+    $response = Lursoft::searchLegalEntity(['q' => 'Company Name']);
 
-    // Get legal entity report
-    $companyInfo = Lursoft::getLegalEntityReport('123456789');
+    // Check if the response was successful
+    if ($response->isSuccess()) {
+        // Get the results array
+        $results = $response->getResults();
 
-    // Get annual reports list
-    $annualReports = Lursoft::getAnnualReportsList('123456789');
+        // Check if there are any results
+        if ($response->hasResults()) {
+            foreach ($results as $company) {
+                echo $company['name'] . "\n";
+            }
+        } else {
+            echo "No results found";
+        }
+    } else {
+        echo "Error: " . $response->getMessage();
+    }
 
-    // Get specific annual report
-    $annualReport = Lursoft::getAnnualReport('123456789', '2023');
-
-    // Get person's profile
-    $personProfile = Lursoft::getPersonProfile('123456-12345');
-
-    // Get public person/institution report
-    $publicPersonInfo = Lursoft::getPublicPersonReport('123456789');
-
-    // Search sanctions list
-    $sanctions = Lursoft::searchSanctionsList('Company Name');
-
-    // Get sanctions report
-    $sanctionDetails = Lursoft::getSanctionsReport('subject_id');
-
-    // Verify sanction by registration number
-    $sanctionVerification = Lursoft::verifySanctionByRegNumber('123456789');
-
-    // Search Estonian legal entities
-    $estonianCompanies = Lursoft::searchEstonianLegalEntity('Company Name');
-
-    // Get Estonian legal entity report
-    $estonianCompanyInfo = Lursoft::getEstonianLegalEntityReport('123456789');
-
-    // Search Lithuanian legal entities
-    $lithuanianCompanies = Lursoft::searchLithuanianLegalEntity('Company Name');
-
-    // Get Lithuanian legal entity report
-    $lithuanianCompanyInfo = Lursoft::getLithuanianLegalEntityReport('123456789');
-
-    // Get deceased person data
-    $deceasedPersonData = Lursoft::getDeceasedPersonData('123456-12345');
-
-    // Search Latvian addresses
-    $latvianAddresses = Lursoft::searchLatvianAddress('Riga, Brivibas');
-
-    // Search Lithuanian addresses
-    $lithuanianAddresses = Lursoft::searchLithuanianAddress('Vilnius, Gedimino');
-
-    // Search Estonian addresses
-    $estonianAddresses = Lursoft::searchEstonianAddress('Tallinn, Narva');
-
-    // Get CSDD vehicle statement
-    $vehicleStatement = Lursoft::getCsddVehicleStatement('123456789');
-
-    // Search insolvency processes
-    $insolvencyProcesses = Lursoft::searchInsolvencyProcess('Company Name');
-
-    // Get insolvency process data
-    $insolvencyData = Lursoft::getInsolvencyProcessData('process_id');
-
-    // Get insolvency process report
-    $insolvencyReport = Lursoft::getInsolvencyProcessReport('process_id');
 } catch (LursoftException $e) {
     // Handle any errors
     echo $e->getMessage();
@@ -141,59 +99,226 @@ try {
 ```php
 use Sharik709\LursoftPhp\Services\LursoftService;
 use Sharik709\LursoftPhp\Exceptions\LursoftException;
+use Psr\SimpleCache\CacheInterface;
 
 try {
-    $lursoft = new LursoftService();
+    // You need to provide a PSR-16 compatible cache implementation
+    // Here's an example of creating a cache service
+    $cache = /* Your PSR-16 compatible cache implementation */;
+
+    $lursoft = new LursoftService($cache);
 
     // All methods are available the same way as in Laravel
-    $companyInfo = $lursoft->getLegalEntityReport('123456789');
+    $response = $lursoft->getLegalEntityReport('123456789');
+
+    if ($response->isSuccess()) {
+        $companyData = $response->getResults();
+        // Process data
+    } else {
+        echo "Error: " . $response->getMessage();
+    }
 } catch (LursoftException $e) {
     // Handle any errors
     echo $e->getMessage();
 }
 ```
 
-## Available Methods
+## Response Object
 
-### Authentication
-- `getAccessToken()`: You don't need to call this. It would be triggered and cached automatically
+All API calls return a `LursoftResponse` object which provides a consistent interface:
+
+```php
+// Check if the request was successful
+$isSuccess = $response->isSuccess();
+
+// Get the full response data as received from Lursoft API
+$rawData = $response->getData();
+
+// Get only the results data (the 'data' key from the response)
+$results = $response->getResults();
+
+// Check if there are any results in the response
+$hasResults = $response->hasResults();
+
+// Get any error message if the request failed
+$errorMessage = $response->getMessage();
+
+// Get the HTTP status code
+$statusCode = $response->getStatusCode();
+
+// Convert the response to an array with standardized structure
+$array = $response->toArray();
+// The array contains: 'success', 'message', 'status_code', 'data', and 'raw_response' keys
+```
+
+## Available Methods and Examples
 
 ### Legal Entity Methods
-- `searchLegalEntity(string $query, array $params = [])`: Search for legal entities
-- `getLegalEntityReport(string $regNumber)`: Get detailed information about a legal entity
-- `getAnnualReportsList(string $regNumber)`: Get list of annual reports
-- `getAnnualReport(string $regNumber, string $year)`: Get specific annual report
+
+#### Search for Legal Entities
+
+```php
+// Basic search by name
+$response = Lursoft::searchLegalEntity(['q' => 'Lursoft']);
+
+// Search with additional filters
+$response = Lursoft::searchLegalEntity([
+    'q' => 'Lursoft',
+    'limit' => 10,
+    'offset' => 0
+]);
+```
+
+#### Get Legal Entity Report
+
+```php
+// Get detailed company information by registration number
+$response = Lursoft::getLegalEntityReport('40003170000');
+
+// Get company information with specific sections
+$response = Lursoft::getLegalEntityReport('40003170000', [
+    'section' => 'ASX' // Current officials, shareholders, and address coordinates
+]);
+```
+
+#### Annual Reports
+
+```php
+// Get a list of all annual reports for a company
+$response = Lursoft::getAnnualReportsList('40003170000');
+
+// Get a specific annual report
+$response = Lursoft::getAnnualReport('40003170000', '2022');
+```
 
 ### Person Methods
-- `getPersonProfile(string $personCode)`: Get person's profile information
-- `getDeceasedPersonData(string $personCode)`: Get deceased person data
+
+#### Get Person Profile
+
+```php
+// Get a person's profile information
+// Format: '123456-12345'
+$response = Lursoft::getPersonProfile('123456-12345');
+
+// Get profile with specific sections
+$response = Lursoft::getPersonProfile('123456-12345', [
+    'section' => 'ASP' // Current posts, memberships, procurations
+]);
+```
+
+#### Get Deceased Person Data
+
+```php
+// Check if a person is deceased
+$response = Lursoft::getDeceasedPersonData('123456-12345');
+```
 
 ### Public Person/Institution Methods
-- `getPublicPersonReport(string $regNumber)`: Get public person/institution report
+
+```php
+// Get information about a public institution
+$response = Lursoft::getPublicPersonReport('90000000000');
+
+// Get with subordinate institutions
+$response = Lursoft::getPublicPersonReport('90000000000', [
+    'section' => 'S'
+]);
+```
 
 ### Sanctions Methods
-- `searchSanctionsList(string $query, array $params = [])`: Search in sanctions lists
-- `getSanctionsReport(string $subjectId)`: Get sanctions report
-- `verifySanctionByRegNumber(string $regNumber)`: Verify sanction by registration number
+
+#### Search in Sanctions Lists
+
+```php
+// Search for a person or entity in sanctions lists
+$response = Lursoft::searchSanctionsList([
+    'name' => 'John+Doe'
+]);
+
+// Search with specific lists and parameters
+$response = Lursoft::searchSanctionsList([
+    'q' => 'John Doe',
+    'list' => 'UN,EU,OFAC',
+    'type' => 'FP', // FP for individuals, JP for entities
+    'precise' => 1
+]);
+```
+
+#### Get Sanctions Report
+
+```php
+// Get detailed sanctions information
+$response = Lursoft::getSanctionsReport('SANCTIONED_ID');
+```
+
+#### Verify Sanction by Registration Number
+
+```php
+// Check if a company is under sanctions
+$response = Lursoft::verifySanctionByRegNumber('40003170000');
+```
 
 ### Baltic Countries Methods
-- `searchEstonianLegalEntity(string $query)`: Search Estonian legal entities
-- `getEstonianLegalEntityReport(string $regNumber)`: Get Estonian legal entity report
-- `searchLithuanianLegalEntity(string $query)`: Search Lithuanian legal entities
-- `getLithuanianLegalEntityReport(string $regNumber)`: Get Lithuanian legal entity report
+
+#### Estonian Legal Entities
+
+```php
+// Search for Estonian companies
+$response = Lursoft::searchEstonianLegalEntity('Company Name');
+
+// Get Estonian company report
+$response = Lursoft::getEstonianLegalEntityReport('EE12345678');
+```
+
+#### Lithuanian Legal Entities
+
+```php
+// Search for Lithuanian companies
+$response = Lursoft::searchLithuanianLegalEntity('Company Name');
+
+// Get Lithuanian company report
+$response = Lursoft::getLithuanianLegalEntityReport('LT12345678');
+```
 
 ### Address Methods
-- `searchLatvianAddress(string $query, array $params = [])`: Search Latvian addresses
-- `searchLithuanianAddress(string $query, array $params = [])`: Search Lithuanian addresses
-- `searchEstonianAddress(string $query, array $params = [])`: Search Estonian addresses
+
+```php
+// Search for Latvian addresses
+$response = Lursoft::searchLatvianAddress([
+    'name' => 'Riga+Street',
+    'level' => 'street'
+]);
+
+// Search for Lithuanian addresses
+$response = Lursoft::searchLithuanianAddress([
+    'name' => 'Vilnius+Street'
+]);
+
+// Search for Estonian addresses
+$response = Lursoft::searchEstonianAddress([
+    'name' => 'Tallinn+Street'
+]);
+```
 
 ### CSDD Methods
-- `getCsddVehicleStatement(string $regNumber)`: Get CSDD vehicle statement
+
+```php
+// Get vehicle statement from CSDD
+$response = Lursoft::getCsddVehicleStatement('VEHICLE_REG_NUMBER');
+```
 
 ### Insolvency Methods
-- `searchInsolvencyProcess(string $query)`: Search insolvency processes
-- `getInsolvencyProcessData(string $processId)`: Get insolvency process data
-- `getInsolvencyProcessReport(string $processId)`: Get insolvency process report
+
+```php
+// Search for insolvency processes
+$response = Lursoft::searchInsolvencyProcess('40003170000');
+
+// Get insolvency process data
+$response = Lursoft::getInsolvencyProcessData('PROCESS_ID');
+
+// Get insolvency process report
+$response = Lursoft::getInsolvencyProcessReport('PROCESS_ID');
+```
 
 ## Error Handling
 
@@ -201,10 +326,24 @@ The package provides comprehensive error handling through the `LursoftException`
 
 ```php
 try {
-    $result = $lursoft->searchLegalEntity('Company Name');
+    $result = Lursoft::searchLegalEntity(['q' => 'Company Name']);
 } catch (Sharik709\LursoftPhp\Exceptions\LursoftException $e) {
-    // Handle the error
+    // Get error message
     echo $e->getMessage();
+
+    // Get error code
+    echo $e->getCode();
+
+    // Handle specific error types
+    if ($e->getCode() === 401) {
+        // Handle authentication error
+    } elseif ($e->getCode() === 404) {
+        // Handle not found error
+    } elseif ($e->getCode() === 429) {
+        // Handle rate limit exceeded
+    } else {
+        // Handle other errors
+    }
 }
 ```
 

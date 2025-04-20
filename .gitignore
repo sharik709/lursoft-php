@@ -1,5 +1,35 @@
-API.txt
-.env
-vendor/
+# Composer
+/vendor/
+composer.phar
+composer.lock
 
+# PHPUnit
+/coverage/
+.phpunit.result.cache
+.phpunit.cache/
+
+# PHPStan
+/.phpstan_cache/
+
+# IDE & OS specific files
+.idea/
+.vscode/
 .DS_Store
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.backup
+
+# Project specific
+API.txt
+API_documentation.txt
+API_service_*.pdf
+core.md
+refresh.md
+request.md
+.cursorrules
+.cursorignore

@@ -2,34 +2,48 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 0 * * 0' # Run every Sunday at midnight
 
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php: [8.0, 8.1, 8.2]
-        laravel: [8.*, 9.*, 10.*]
+        php: [8.1, 8.2, 8.3]
+        laravel: [10.*, 11.*]
+        exclude:
+          - php: 8.1
+            laravel: 11.*
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: mbstring, xml, ctype, iconv, json
+          extensions: mbstring, xml, ctype, iconv, json, curl, intl
+          tools: composer:v2
           coverage: xdebug
+
+      - name: Cache Composer packages
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ matrix.php }}-laravel-${{ matrix.laravel }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-${{ matrix.php }}-laravel-${{ matrix.laravel }}-
 
       - name: Install dependencies
         run: |
-          composer require "illuminate/support:${{ matrix.laravel }}" --no-update
+          composer require "illuminate/support:${{ matrix.laravel }}" "illuminate/contracts:${{ matrix.laravel }}" --no-update
           composer update --prefer-dist --no-interaction
 
       - name: Run tests
@@ -44,30 +58,39 @@ jobs:
   coverage:
     needs: test
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.2
-          extensions: mbstring, xml, ctype, iconv, json
+          extensions: mbstring, xml, ctype, iconv, json, curl, intl
+          tools: composer:v2
           coverage: xdebug
+
+      - name: Cache Composer packages
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-8.2-coverage-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.2-coverage-
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-interaction
 
-      - name: Generate coverage
-        run: composer test-coverage
+      - name: Generate coverage report
+        run: vendor/bin/phpunit --coverage-clover coverage.xml
 
-      - name: Upload coverage
-        uses: codecov/codecov-action@v2
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          directory: ./coverage
+          file: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: true
+          verbose: true

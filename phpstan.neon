@@ -3,6 +3,10 @@ parameters:
     paths:
         - src/
         - tests/
+    tmpDir: .phpstan_cache
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false
+    treatPhpDocTypesAsCertain: true
     ignoreErrors:
         - '#Undefined type GuzzleHttp\\Client#'
         - '#Undefined type GuzzleHttp\\Exception\\GuzzleException#'
@@ -12,3 +16,8 @@ parameters:
         - '#Undefined type PHPUnit\\Framework\\TestCase#'
         - '#Call to an undefined method PHPUnit\\Framework\\TestCase::(assert|assertEquals|assertArrayHasKey|assertIsArray)#'
         - '#Parameter \#3 \$body of class GuzzleHttp\\Psr7\\Response constructor expects Psr\\Http\\Message\\StreamInterface\|resource\|string\|null, string\|false given#'
+        - '#Method Sharik709\\LursoftPhp\\Tests\\.*::setUp\(\) has no return type specified.#'
+        - '#Method Sharik709\\LursoftPhp\\Tests\\.*::getPackageProviders\(\) return type has no value type specified in iterable type array.#'
+
+includes:
+    - vendor/phpstan/phpstan/conf/bleedingEdge.neon
