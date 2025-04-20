@@ -31,7 +31,7 @@ A PHP package for integrating with the Lursoft API service. This package provide
 You can install the package via composer:
 
 ```bash
-composer require lursoft/lursoft-php
+composer require sharik709/lursoft-php
 ```
 
 ### Laravel
