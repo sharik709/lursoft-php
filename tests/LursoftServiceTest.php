@@ -1,17 +1,17 @@
 <?php
 
-namespace Lursoft\LursoftPhp\Tests;
+namespace Sharik709\LursoftPhp\Tests;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
-use Lursoft\LursoftPhp\Services\LursoftService;
-use Lursoft\LursoftPhp\Exceptions\LursoftException;
+use Sharik709\LursoftPhp\Services\LursoftService;
+use Sharik709\LursoftPhp\Exceptions\LursoftException;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers \Lursoft\LursoftPhp\Services\LursoftService
+ * @covers \Sharik709\LursoftPhp\Services\LursoftService
  */
 class LursoftServiceTest extends TestCase
 {

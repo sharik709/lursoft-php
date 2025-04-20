@@ -24,21 +24,21 @@
     },
     "autoload": {
         "psr-4": {
-            "Lursoft\\LursoftPhp\\": "src/"
+            "Sharik709\\LursoftPhp\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Lursoft\\LursoftPhp\\Tests\\": "tests/"
+            "Sharik709\\LursoftPhp\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Lursoft\\LursoftPhp\\Providers\\LursoftServiceProvider"
+                "Sharik709\\LursoftPhp\\Providers\\LursoftServiceProvider"
             ],
             "aliases": {
-                "Lursoft": "Lursoft\\LursoftPhp\\Facades\\Lursoft"
+                "Lursoft": "Sharik709\\LursoftPhp\\Facades\\Lursoft"
             }
         }
     },
