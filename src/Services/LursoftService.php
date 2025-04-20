@@ -40,8 +40,21 @@ class LursoftService
     private function request(string $endpoint, array $data = []): array
     {
         try {
-            $response = $this->client->get($endpoint, [
-                'query' => $data,
+            // Parse the endpoint URL to extract existing query parameters
+            $parsedUrl = parse_url($endpoint);
+            $path = $parsedUrl['path'] ?? '/';
+
+            // Parse any query parameters in the endpoint
+            $queryParams = [];
+            if (isset($parsedUrl['query'])) {
+                parse_str($parsedUrl['query'], $queryParams);
+            }
+
+            // Merge the endpoint query parameters with the user-provided data
+            $mergedParams = array_merge($queryParams, $data);
+
+            $response = $this->client->get($path, [
+                'query' => $mergedParams,
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->getAccessToken(),
                 ],
