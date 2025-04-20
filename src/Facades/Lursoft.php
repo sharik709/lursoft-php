@@ -1,9 +1,9 @@
 <?php
 
-namespace Lursoft\LursoftPhp\Facades;
+namespace Sharik709\LursoftPhp\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use Lursoft\LursoftPhp\Services\LursoftService;
+use Sharik709\LursoftPhp\Services\LursoftService;
 
 /**
  * @method static array searchLegalEntity(array $params)

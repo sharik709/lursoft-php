@@ -1,6 +1,6 @@
 <?php
 
-namespace Lursoft\LursoftPhp\Exceptions;
+namespace Sharik709\LursoftPhp\Exceptions;
 
 use Exception;
 

@@ -1,10 +1,10 @@
 <?php
 
-namespace Lursoft\LursoftPhp\Services;
+namespace Sharik709\LursoftPhp\Services;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-use Lursoft\LursoftPhp\Exceptions\LursoftException;
+use Sharik709\LursoftPhp\Exceptions\LursoftException;
 use Throwable;
 
 class LursoftService

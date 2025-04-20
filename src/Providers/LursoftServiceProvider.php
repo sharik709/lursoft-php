@@ -1,9 +1,9 @@
 <?php
 
-namespace Lursoft\LursoftPhp\Providers;
+namespace Sharik709\LursoftPhp\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Lursoft\LursoftPhp\Services\LursoftService;
+use Sharik709\LursoftPhp\Services\LursoftService;
 
 class LursoftServiceProvider extends ServiceProvider
 {
