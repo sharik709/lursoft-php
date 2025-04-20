@@ -5,6 +5,7 @@ namespace Sharik709\LursoftPhp\Services;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Sharik709\LursoftPhp\Exceptions\LursoftException;
+use Psr\SimpleCache\CacheInterface;
 use Throwable;
 
 class LursoftService
@@ -12,10 +13,14 @@ class LursoftService
     private Client $client;
     private string $apiKey;
     private string $baseUrl;
+    private CacheInterface $cache;
 
-    public function __construct(string $baseUrl = 'https://api.lursoft.lv')
-    {
+    public function __construct(
+        CacheInterface $cache,
+        string $baseUrl = 'https://b2b.lursoft.lv'
+    ) {
         $this->baseUrl = $baseUrl;
+        $this->cache = $cache;
         $this->client = new Client([
             'base_uri' => $this->baseUrl,
             'timeout' => 30,
@@ -35,8 +40,8 @@ class LursoftService
     private function request(string $endpoint, array $data = []): array
     {
         try {
-            $response = $this->client->post($endpoint, [
-                'json' => $data,
+            $response = $this->client->get($endpoint, [
+                'query' => $data,
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->getAccessToken(),
                 ],
@@ -61,7 +66,7 @@ class LursoftService
      */
     public function searchLegalEntity(array $params): array
     {
-        return $this->request('/search_legal_entity', $params);
+        return $this->request('/?r=search', $params);
     }
 
     /**
@@ -70,7 +75,7 @@ class LursoftService
      */
     public function getLegalEntityReport(string $regNumber): array
     {
-        return $this->request('/legal_entity_report', ['reg_number' => $regNumber]);
+        return $this->request('/?r=company', ['code' => $regNumber]);
     }
 
     /**
@@ -79,7 +84,7 @@ class LursoftService
      */
     public function getAnnualReportsList(string $regNumber): array
     {
-        return $this->request('/annual_reports_list', ['reg_number' => $regNumber]);
+        return $this->request('/?r=annual-report/list', ['code' => $regNumber]);
     }
 
     /**
@@ -88,8 +93,8 @@ class LursoftService
      */
     public function getAnnualReport(string $regNumber, string $year): array
     {
-        return $this->request('/annual_report', [
-            'reg_number' => $regNumber,
+        return $this->request('/?r=annual-report/view', [
+            'code' => $regNumber,
             'year' => $year,
         ]);
     }
@@ -100,7 +105,7 @@ class LursoftService
      */
     public function getPersonProfile(string $personId): array
     {
-        return $this->request('/person_profile', ['person_id' => $personId]);
+        return $this->request('/?r=profile', ['code' => $personId]);
     }
 
     /**
@@ -109,7 +114,7 @@ class LursoftService
      */
     public function getPublicPersonReport(string $personId): array
     {
-        return $this->request('/public_person_report', ['person_id' => $personId]);
+        return $this->request('/?r=authority', ['code' => $personId]);
     }
 
     /**
@@ -119,7 +124,7 @@ class LursoftService
      */
     public function searchSanctionsList(array $params): array
     {
-        return $this->request('/search_sanctions_list', $params);
+        return $this->request('/?r=sanction/search', $params);
     }
 
     /**
@@ -128,7 +133,7 @@ class LursoftService
      */
     public function getSanctionsReport(string $regNumber): array
     {
-        return $this->request('/sanctions_report', ['reg_number' => $regNumber]);
+        return $this->request('/?r=sanction/view', ['regcode' => $regNumber]);
     }
 
     /**
@@ -137,7 +142,7 @@ class LursoftService
      */
     public function verifySanctionByRegNumber(string $regNumber): array
     {
-        return $this->request('/verify_sanction_by_reg_number', ['reg_number' => $regNumber]);
+        return $this->request('/?r=sanction/verification', ['regcode' => $regNumber]);
     }
 
     /**
@@ -146,7 +151,7 @@ class LursoftService
      */
     public function searchEstonianLegalEntity(string $regNumber): array
     {
-        return $this->request('/search_estonian_legal_entity', ['reg_number' => $regNumber]);
+        return $this->request('/?r=search/est', ['code' => $regNumber]);
     }
 
     /**
@@ -155,7 +160,7 @@ class LursoftService
      */
     public function getEstonianLegalEntityReport(string $regNumber): array
     {
-        return $this->request('/estonian_legal_entity_report', ['reg_number' => $regNumber]);
+        return $this->request('/?r=company/est', ['code' => $regNumber]);
     }
 
     /**
@@ -164,7 +169,7 @@ class LursoftService
      */
     public function searchLithuanianLegalEntity(string $regNumber): array
     {
-        return $this->request('/search_lithuanian_legal_entity', ['reg_number' => $regNumber]);
+        return $this->request('/?r=search/ltu', ['code' => $regNumber]);
     }
 
     /**
@@ -173,7 +178,7 @@ class LursoftService
      */
     public function getLithuanianLegalEntityReport(string $regNumber): array
     {
-        return $this->request('/lithuanian_legal_entity_report', ['reg_number' => $regNumber]);
+        return $this->request('/?r=company/ltu', ['code' => $regNumber]);
     }
 
     /**
@@ -182,7 +187,7 @@ class LursoftService
      */
     public function getDeceasedPersonData(string $personId): array
     {
-        return $this->request('/deceased_person_data', ['person_id' => $personId]);
+        return $this->request('/?r=deceased-person', ['code' => $personId]);
     }
 
     /**
@@ -192,7 +197,7 @@ class LursoftService
      */
     public function searchLatvianAddress(array $params): array
     {
-        return $this->request('/search_latvian_address', $params);
+        return $this->request('/?r=address/name-lva', $params);
     }
 
     /**
@@ -202,7 +207,7 @@ class LursoftService
      */
     public function searchLithuanianAddress(array $params): array
     {
-        return $this->request('/search_lithuanian_address', $params);
+        return $this->request('/?r=address/name-ltu', $params);
     }
 
     /**
@@ -212,7 +217,7 @@ class LursoftService
      */
     public function searchEstonianAddress(array $params): array
     {
-        return $this->request('/search_estonian_address', $params);
+        return $this->request('/?r=address/name-est', $params);
     }
 
     /**
@@ -221,7 +226,7 @@ class LursoftService
      */
     public function getCsddVehicleStatement(string $regNumber): array
     {
-        return $this->request('/csdd_vehicle_statement', ['reg_number' => $regNumber]);
+        return $this->request('/?r=vehicle/count', ['regcode' => $regNumber]);
     }
 
     /**
@@ -230,7 +235,7 @@ class LursoftService
      */
     public function searchInsolvencyProcess(string $regNumber): array
     {
-        return $this->request('/search_insolvency_process', ['reg_number' => $regNumber]);
+        return $this->request('/?r=insolvency/search', ['code' => $regNumber]);
     }
 
     /**
@@ -239,7 +244,7 @@ class LursoftService
      */
     public function getInsolvencyProcessData(string $processId): array
     {
-        return $this->request('/insolvency_process_data', ['process_id' => $processId]);
+        return $this->request('/?r=insolvency/view', ['id' => $processId]);
     }
 
     /**
@@ -248,7 +253,7 @@ class LursoftService
      */
     public function getInsolvencyProcessReport(string $processId): array
     {
-        return $this->request('/insolvency_process_report', ['process_id' => $processId]);
+        return $this->request('/?r=insolvency/date-status', ['id' => $processId]);
     }
 
     public function getAccessToken(): string
@@ -260,7 +265,7 @@ class LursoftService
             return $cache;
         }
 
-        $response = $this->client->post('/oauth/token', [
+        $response = $this->client->post('https://oauth.lursoft.lv/authorize/token', [
             'form_params' => [
                 'grant_type' => 'password',
                 'client_id' => config('lursoft.client_id'),

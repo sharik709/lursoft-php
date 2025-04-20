@@ -1,0 +1,386 @@
+# Lursoft IT API Documentation
+
+This is a simplified version of the Lursoft IT API documentation, focusing on the key endpoints, parameters, and responses while maintaining all technical details.
+
+## Authentication
+
+### Obtaining Access Key
+**Endpoint:** `POST https://oauth.lursoft.lv/authorize/token`
+
+**Parameters:**
+- `grant_type`: "password" (required)
+- `username`: User ID (required)
+- `password`: User password (required)
+- `scope`: User role (optional, format: "organization:COMPANY")
+- `client_id`: User oAuth ID (required)
+- `client_secret`: User oAuth password (required)
+
+**Response:**
+```json
+{
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "access_token": "eyJ0eXAiOiJKV1...",
+  "refresh_token": "def50200d0f..."
+}
+```
+
+### Refreshing Access Token
+**Endpoint:** `POST https://oauth.lursoft.lv/authorize/token`
+
+**Parameters:**
+- `grant_type`: "refresh_token" (required)
+- `refresh_token`: Recovery key (required)
+- `scope`: User role (optional)
+- `client_id`: User oAuth ID (required)
+- `client_secret`: User oAuth password (required)
+
+## Making API Requests
+
+All API requests should be made to the base URL: `https://b2b.lursoft.lv/`
+
+**Request Headers:**
+- `Authorization`: Bearer {access_token}
+
+**Common Request Parameters:**
+- `format`: Response format (default: JSON, can be 'xml')
+- `lang`: Response language (options: 'lv', 'ru', 'en')
+
+## Legal Entity Search
+
+### Search by Name or Registration Number
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=search`
+
+**Parameters:**
+- `name`: Company name or fragment (words separated by hyphen)
+- `code`: 11-digit registration number
+
+**Response:**
+```json
+{
+  "Answer": {
+    "Data": [
+      {
+        "code": "000317000",
+        "regcode": "40003170000",
+        "RegisterType": {
+          "code": "K",
+          "value": "Commercial company"
+        },
+        "virtualid": "000317000",
+        "registered": "1993-12-23",
+        "name": "SIA \"LURSOFT IT\"",
+        "firm": "LURSOFT IT",
+        "Type": {},
+        "Status": {
+          "code": 1,
+          "value": "Registered"
+        },
+        "Address": null,
+        "terminated": null
+      }
+    ],
+    "Pagination": {
+      "totalCount": 1,
+      "pageCount": 1,
+      "currentPage": 1,
+      "perPage": 20
+    }
+  },
+  "Price": {
+    "sum": "0.00",
+    "currency": "EUR"
+  }
+}
+```
+
+## Company Report
+
+### Company Details
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=company`
+
+**Parameters:**
+- `code`: Company registration number (required)
+- `section`: Data sections to include (optional)
+  - `A`: Current officials
+  - `a`: Historical officials
+  - `S`: Current shareholders
+  - `s`: Historical shareholders
+  - `X`: Address coordinates
+  - `B`: Types of activity
+  - `W`: Warnings and encumbrances
+  - `N`: Current collaterals
+  - `n`: Historical collaterals
+  - `P`: Current tax debts
+  - `p`: Historical tax debts
+  - `I`: Contact information
+  - `c`: Historical capital
+  - `C`: Registered company changes
+  - `M`: Current insolvency processes
+  - `O`: Current beneficial owners
+  - `o`: Historical beneficial owners
+  - `L`: Link to company report
+  - `R`: Reorganizations
+  - `D`: Claims regarding company payments
+  - `V`: Company paid taxes
+  - `J`: Company rating
+  - `Y`: Current officials representation types
+  - `y`: Historical officials representation types
+- `vidyear`: Tax year (required only with section=V)
+
+**Response:** Complex object containing company details based on requested sections
+
+## Annual Reports
+
+### List of Annual Reports
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=annual-report/list`
+
+**Parameters:**
+- `code`: Company registration number (required)
+- `page`: Page number (optional, default: 1)
+- `per-page`: Records per page (optional, default: 20)
+
+### Annual Report Details
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=annual-report/view`
+
+**Parameters:**
+- `code`: Company registration number (required)
+- `year`: Report year (required)
+- `consolided`: Report type (empty for regular, "K" for consolidated)
+
+### Specific Annual Report Rows
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=annual-report/rows`
+
+**Parameters:**
+- `code`: Company registration number (required)
+- `year`: Report year (required)
+- `section`: Report section (B=Balance, P=Profit/Loss, N=Cash Flow)
+- `rows`: Specific row numbers (comma-separated or range with hyphen)
+
+## Person Profile
+
+### Person/Company Profile
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=profile`
+
+**Parameters:**
+- `code`: Personal code (format: 123456-12345) or company registration number
+- `section`: Data sections to include
+  - `A`: Current posts
+  - `a`: Historical posts
+  - `S`: Current memberships
+  - `s`: Historical memberships
+  - `P`: Current procurations
+  - `p`: Historical procurations
+  - `K`: Current commercial pledges
+  - `k`: Historical commercial pledges
+  - `F`: Current branches (legal persons only)
+  - `f`: Historical branches (legal persons only)
+  - `R`: Current collaterals
+  - `r`: Historical collaterals
+  - `B`: Current beneficial owner status
+  - `b`: Historical beneficial owner status
+  - `D`: Current claims for payments
+  - `d`: Historical claims for payments
+  - `M`: Current insolvency processes
+  - `m`: Historical insolvency processes
+
+## Public Institution Report
+
+### Public Institution Details
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=authority`
+
+**Parameters:**
+- `code`: Institution registration number (required)
+- `section`: Data sections to include
+  - `S`: Subordinate institutions
+
+## Sanctions Lists Checking
+
+### Search in Sanctions Lists
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=sanction/search`
+
+**Parameters:**
+- `name`: Name+Surname or company name (words separated by +)
+- `q`: Search across name, address, document numbers, descriptions
+- `docNumber`: Registration number of legal entity
+- `list`: Specific lists to check (LV, UN, EU, UK, OFAC, SDN, NONSDN, CANADA, all)
+- `country`: ISO 3166-1 alpha-2 country code
+- `birthdate`: Format YYYY-mm-dd
+- `type`: Entity type (FP for individuals, JP for entities, Vessel, Aircraft)
+- `sort`: Sort order (id for ID order)
+- `E`: Include additional data matches
+- `S`: Include conformity values
+- `minScore`: Minimum conformity threshold
+- `precise`: Return only precise matches (1)
+- `stopWords`: Exclude entries matching business types (1)
+
+### Sanctions Subject Details
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=sanction/view`
+
+**Parameters:**
+- `list`: Sanctions list (OFAC, SDN, NONSDN, LV, EU, UN, UK)
+- `listId`: Entry identifier in the list
+- `regId`: Decision identifier (required for EU list)
+
+### Verification by Registration Number
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=sanction/verification`
+
+**Parameters:**
+- `regcode`: Company registration number
+- `list`: Lists to check (default: all lists)
+- `sort`: Sort order (id for ID order)
+
+## Address Data
+
+### Latvian Addresses
+
+#### Search by Name
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=address/name-lva`
+
+**Parameters:**
+- `name`: Address search term (words separated by +)
+- `level`: Address type filter (flat, house, street, city, village, region, parish, country)
+
+#### Search by Code
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=address/code-lva`
+
+**Parameters:**
+- `code`: Address code
+- `level`: Address type filter
+
+#### Search by Coordinates
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=address/geo-lva`
+
+**Parameters:**
+- `lat`: Latitude
+- `lon`: Longitude
+- `radius`: Search radius
+- `level`: Address type filter
+
+#### Search by Postal Code
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=address/name-lva`
+
+**Parameters:**
+- `name`: Postal code (format: LV-XXXX)
+- `level`: Address type filter
+
+#### Address Dropdown Options
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=address/tree-lva`
+
+**Parameters:**
+- `code`: Address code
+
+### Lithuanian Addresses
+Similar endpoints with "-ltu" suffix:
+- `GET https://b2b.lursoft.lv/?r=address/name-ltu`
+- `GET https://b2b.lursoft.lv/?r=address/code-ltu`
+- `GET https://b2b.lursoft.lv/?r=address/zip-ltu`
+- `GET https://b2b.lursoft.lv/?r=address/tree-ltu`
+
+### Estonian Addresses
+Similar endpoints with "-est" suffix:
+- `GET https://b2b.lursoft.lv/?r=address/name-est`
+- `GET https://b2b.lursoft.lv/?r=address/code-est`
+- `GET https://b2b.lursoft.lv/?r=address/zip-est`
+- `GET https://b2b.lursoft.lv/?r=address/geo-est`
+- `GET https://b2b.lursoft.lv/?r=address/tree-est`
+
+## Cross-Border Data
+
+### Estonian Legal Entities
+
+#### Search Estonian Companies
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=search/est`
+
+**Parameters:**
+- `name`: Company name (words separated by +)
+- `code`: 8-digit registration number
+
+#### Estonian Company Report
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=company/est`
+
+**Parameters:**
+- `code`: Company registration number
+- `section`: Data sections to include
+  - `A`: Contact information
+  - `B`: Current activity types
+  - `b`: Historical activity types
+  - `E`: Current activity descriptions
+  - `e`: Historical activity descriptions
+  - `H`: Current officials
+  - `h`: Historical officials
+  - `S`: Current members
+  - `s`: Historical members
+  - `O`: Current beneficial owners
+  - `o`: Historical beneficial owners
+
+### Lithuanian Legal Entities
+
+#### Search Lithuanian Companies
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=search/ltu`
+
+**Parameters:**
+- `name`: Company name (words separated by +)
+- `code`: Registration number
+
+#### Lithuanian Company Report
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=company/ltu`
+
+**Parameters:**
+- `code`: Company registration number
+- `section`: Data sections to include
+  - `B`: Current activity types
+  - `b`: Historical activity types
+  - `E`: Current activity descriptions
+  - `e`: Historical activity descriptions
+
+## Additional Services
+
+### Deceased Person Data
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=deceased-person`
+
+**Parameters:**
+- `code`: Personal identification number (with or without hyphen)
+
+### Vehicle Count from CSDD
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=vehicle/count`
+
+**Parameters:**
+- `regcode`: 11-digit company registration number
+
+### Insolvency Processes
+
+#### Search Insolvency Records
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=insolvency/search`
+
+**Parameters:**
+- `code`: Company registration number or personal code
+
+#### Insolvency Process Details
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=insolvency/view`
+
+**Parameters:**
+- `id`: Insolvency process identifier
+
+#### Insolvency Status on Date
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=insolvency/date-status`
+
+**Parameters:**
+- `code`: Company registration number or personal code
+- `date`: Date in format YYYY-MM-DD
+
+### Liquidated/Reorganized Companies
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=liquidated-company/day`
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=liquidated-company/period`
+
+**Parameters:**
+- `date`: Date (YYYY-MM-DD) or end date of period
+
+### Economic Activity Status
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=sda-company/day`
+**Endpoint:** `GET https://b2b.lursoft.lv/?r=sda-company/period`
+
+**Parameters:**
+- `date`: Date (YYYY-MM-DD) or end date of period
+
+Each endpoint returns structured JSON or XML data based on the request parameters, with comprehensive information about the requested entity or data type.
