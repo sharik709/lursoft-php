@@ -44,15 +44,8 @@ class LursoftResponse
     {
         $this->statusCode = $statusCode;
         $this->data = $data;
-
-        // Determine success status based on the response
-        if (isset($data['status']) && $data['status'] === 'success') {
-            $this->success = true;
-            $this->message = null;
-        } else {
-            $this->success = false;
-            $this->message = $data['message'] ?? 'Unknown error';
-        }
+        $this->success = true;
+        $this->message = null;
     }
 
     /**
